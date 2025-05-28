@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自定义导航页</title>
+    <style>
+        /* 基本重置和全局样式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            height: 100%;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #1a1a2e;
+            background-image: url('./BG.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* 确保内容在视口中垂直居中（如果内容不足一屏） */
+            min-height: 100vh;
+            padding: 20px 15px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 全局背景毛玻璃覆盖层 */
+        .page-background-frosted-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(26, 26, 46, 0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 0;
+        }
+
+        .hidden-svg-sprites {
+            display: none;
+            position: absolute;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin: 0 auto; /* 水平居中 */
+            margin-bottom: 45px; /* 增大与下方page-wrapper的间距 */
+            position: relative;
+            z-index: 2;
+        }
+        .logo {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #E5E7EB;
+        }
+        .datetime-motto {
+            text-align: right;
+            color: #f0f0f0;
+        }
+        .date-weekday-line {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+        #time-display-top {
+            font-size: 1.8em;
+            font-weight: 500;
+            display: block;
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            width: 100%;
+            padding-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .s-search {
+            width: 100%;
+            max-width: 760px;
+            background-color: transparent;
+            padding: 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .search-engine-buttons-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        ul.search-type {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+        ul.search-type li {
+            flex: 0 1 auto;
+        }
+        ul.search-type li input[type="radio"] { display: none; }
+        ul.search-type li label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9em;
+            color: #334155;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+            background-color: rgba(240, 245, 255, 0.3);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        ul.search-type li label .icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+            flex-shrink: 0;
+            fill: currentColor;
+        }
+        ul.search-type li label span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        ul.search-type li input[type="radio"]:checked + label {
+            background-color: rgba(225, 238, 255, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-color: rgba(100, 160, 240, 0.6);
+            color: #00428B;
+            box-shadow: 0 1px 5px rgba(100, 150, 230, 0.25);
+        }
+        ul.search-type li label:hover:not(:checked) {
+            background-color: rgba(245, 250, 255, 0.45);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #2c3e50;
+        }
+
+        .search-input-row { display: flex; width: 100%; }
+        #search-text {
+            flex-grow: 1;
+            padding: 12px 18px;
+            font-size: 1em;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px 0 0 8px;
+            outline: 0;
+            -webkit-appearance: none;
+            border-right-style: none;
+            min-width: 50px;
+            background-color: rgba(255,255,255,0.08);
+            color: #f0f0f0;
+            position: relative;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        #search-text::placeholder { color: #9ab; opacity: 0.7; }
+        #search-text:focus {
+            border-color: rgba(255,255,255,0.3);
+            background-color: rgba(255,255,255,0.12);
+            box-shadow: none;
+            color: #f0f0f0;
+        }
+        #search-text:focus::placeholder {
+            color: #bbb;
+        }
+        #search-text:focus + .submit {
+            border-left-color: rgba(255,255,255,0.3);
+        }
+
+        #super-search-fm .submit {
+            padding: 0;
+            background-color: #3b82f6;
+            color: white;
+            border: 1px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            width: auto;
+            min-width: 55px;
+            position: relative;
+            z-index: 2;
+        }
+        #super-search-fm .submit:hover { background-color: #2563eb; }
+        #super-search-fm .submit .icon {
+            width: 20px;
+            height: 20px;
+            margin: 0 12px;
+            fill: currentColor;
+        }
+        #super-search-fm .submit span { display: none; }
+
+        .set-check {
+            margin-top: 15px;
+            font-size: 0.85em;
+            color: #E0E0E0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .set-check input[type="checkbox"] { accent-color: #3b82f6; }
+        .set-check label { cursor: pointer; }
+
+        .bookmarks-container {
+            width: 100%;
+            max-width: 960px;
+            background-color: transparent;
+            padding: 0;
+            position: relative;
+        }
+
+        .bookmark-category {
+            background-color: transparent;
+            padding: 10px 0;
+            margin-bottom: 25px;
+        }
+        .bookmark-category:last-child { margin-bottom: 0; }
+
+        .category-title {
+            font-size: 1.15em;
+            color: #FFFFFF;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: none;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .bookmark-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 18px;
+        }
+
+        .bookmark-list li a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 8px 5px;
+            background-color: transparent;
+            color: #FFFFFF;
+            text-decoration: none;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: color 0.2s, transform 0.15s ease-out, background-color 0.2s, border-color 0.2s;
+            font-size: 0.8em;
+            overflow: visible;
+            gap: 5px;
+            min-height: auto;
+        }
+        .bookmark-list li a:hover {
+            color: #f0f8ff;
+            transform: translateY(-2px);
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255,255,255,0.15);
+        }
+        .bookmark-favicon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            object-fit: contain;
+        }
+        .bookmark-list li a span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            max-width: 100%;
+            margin-top: 3px;
+            font-size: 0.9em;
+            line-height: 1.3;
+        }
+
+        /* --- 响应式调整 --- */
+        @media (max-width: 768px) {
+            body {
+                justify-content: flex-start;
+            }
+            .top-bar {
+                padding: 10px 15px;
+                margin-bottom: 30px;
+            }
+            .page-wrapper {
+                justify-content: flex-start; /* 小屏幕从顶部开始排列内容 */
+            }
+            .logo { font-size: 1.5em; }
+            #time-display-top { font-size: 1.5em; min-width: 115px; }
+            ul.search-type li label { font-size: 0.85em; padding: 5px 10px;}
+            ul.search-type li label .icon { margin-right: 4px; width: 14px; height: 14px;}
+            #search-text, #super-search-fm .submit { font-size: 0.95em; padding-top: 10px; padding-bottom: 10px;}
+            .bookmark-category { padding: 0; margin-bottom: 20px;}
+            .category-title { font-size: 1.1em; }
+            .bookmark-list { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; }
+            .bookmark-favicon { width: 30px; height: 30px; }
+            .bookmark-list li a span { font-size: 0.9em; }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 15px; }
+            .top-bar {
+                flex-direction: column;
+                align-items: center;
+                gap:8px;
+                margin-bottom: 20px;
+                position: relative;
+                transform: none;
+                left: auto;
+                padding: 10px 0;
+            }
+            .datetime-motto {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .date-weekday-line{margin-bottom: 2px;}
+            #time-display-top {
+                font-size: 1.3em;
+                min-width: auto;
+                text-align:center;
+            }
+            ul.search-type li {
+                flex-basis: calc(50% - 5px);
+                max-width: calc(50% - 5px);
+            }
+            #search-text, #super-search-fm .submit { font-size: 0.9em; }
+            .category-title { font-size: 1.05em; margin-bottom: 10px; padding-bottom: 6px;}
+            .bookmark-list { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+            .bookmark-favicon { width: 28px; height: 28px; }
+            .bookmark-list li a { min-height: auto; padding: 8px 4px; gap: 4px; }
+            .bookmark-list li a span { font-size: 0.85em; }
+        }
+        @media (max-width: 420px) {
+            .bookmark-list { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 10px; }
+            .bookmark-favicon { width: 26px; height: 26px; }
+            .bookmark-list li a { padding: 6px 2px; gap: 3px; }
+            .bookmark-list li a span { font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body>
+<div class="page-background-frosted-overlay"></div>
+
+<svg class="hidden-svg-sprites" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-bing" viewBox="0 0 1024 1024"><path d="M340.5824 70.109867L102.536533 0.682667v851.217066L340.650667 643.345067V70.109867zM102.536533 851.7632l238.045867 171.6224 580.881067-340.923733V411.784533L102.536533 851.831467z" fill="#3894FB"></path><path d="M409.463467 255.3856l113.732266 238.933333 138.8544 56.866134 259.413334-139.400534-506.0608-156.330666z" fill="#3894FB"></path></symbol>
+    <symbol id="icon-icon_baidulogo" viewBox="0 0 1024 1024"><path d="M184.682058 538.758771c111.176877-23.873478 96.029086-156.736593 92.70169-185.775677-5.444828-44.768588-58.101436-123.020542-129.605526-116.831122-89.979276 8.074168-103.125977 138.051991-103.125977 138.051991-12.169424 60.079258 29.132158 188.451554 140.029813 164.554808z m118.064352 231.102709c-3.25759 9.330667-10.51736 33.227413-4.234867 54.029449 12.402109 46.676604 52.912561 48.770769 52.912562 48.770769h58.217778V730.351572h-62.336302c-28.01527 8.35339-41.534266 30.155972-44.559171 39.509908z m88.280676-453.898564c61.405563 0 111.037266-70.666424 111.037266-158.039629 0-87.280131-49.631703-157.923287-111.037266-157.923287-61.312489 0-111.060534 70.643156-111.060534 157.923287 0 87.373205 49.771314 158.039629 111.060534 158.039629z m264.469733 10.447555c82.067988 10.656971 134.840938-76.92565 145.33503-143.310671 10.703508-66.291947-42.25559-143.287402-100.357026-156.527177-58.217779-13.356117-130.908562 79.904017-137.540084 140.704599-7.911289 74.319578 10.633703 148.59262 92.56208 159.133249z m201.086348 390.212688s-126.976186-98.239593-201.109617-204.413743c-100.473368-156.550445-243.202327-92.841302-290.949282-13.216506-47.537539 79.601527-121.624432 129.954554-132.141792 143.287403-10.68024 13.123432-153.38593 90.165424-121.694237 230.870023 31.668424 140.611525 142.938375 137.935648 142.938374 137.935648s81.998182 8.074168 177.119797-13.216506c95.168151-21.104526 177.096528 5.25868 177.096528 5.258681s222.283948 74.435921 283.107798-68.851482c60.754045-143.333939-34.36757-217.653518-34.367569-217.653518z m-380.323578 213.255772h-144.520632c-62.406108-12.448646-87.256862-55.029995-90.39811-62.289765-3.071442-7.376113-20.802036-41.604072-11.424832-99.845119 26.968188-87.256862 103.870569-93.516088 103.870569-93.516088h76.92565v-94.563171l65.524087 1.000546v349.213597z m269.146701-1.000545h-166.299946c-64.453736-16.613707-67.455372-62.406108-67.455371-62.406108v-183.890929l67.455371-1.093619v165.276131c4.118524 17.63752 26.014179 20.825304 26.01418 20.825305h68.525722v-185.007817h71.760044v246.297037z m235.40738-490.988548c0-31.761498-26.386475-127.395019-124.230503-127.395019-98.006908 0-111.107071 90.258498-111.107072 154.060716 0 60.893656 5.142338 145.893474 126.883112 143.194329 121.787311-2.699146 108.454463-137.935648 108.454463-169.860026z m0 0" fill="#3245DF"></path></symbol>
+    <symbol id="icon-google00" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path><path d="M1 1h22v22H1z" fill="none"></path></symbol>
+    <symbol id="icon-youdao00" viewBox="0 0 1024 1024"><path d="M931.84 1024H92.16c-51.2 0-92.16-40.96-92.16-92.16V92.16C0 40.96 40.96 0 92.16 0h837.12c51.2 0 92.16 40.96 92.16 92.16v837.12c2.56 53.76-38.4 94.72-89.6 94.72z" fill="#D20B0A"></path><path d="M552.96 632.32c33.28-40.96 43.52-74.24 30.72-99.84-15.36-28.16-35.84-51.2-71.68-56.32-2.56 23.04-5.12 43.52-7.68 56.32 17.92 15.36 33.28 25.6 40.96 38.4 10.24 15.36-2.56 38.4-20.48 38.4-35.84 0-64-30.72-58.88-66.56 0-7.68 0-12.8 2.56-20.48 17.92-81.92-35.84-110.08-97.28-110.08-43.52 0-87.04 7.68-130.56 10.24 5.12-35.84 35.84-38.4 66.56-38.4 51.2-2.56 99.84-5.12 151.04-10.24 17.92-2.56 38.4-5.12 35.84-30.72h-199.68c5.12-12.8 10.24-23.04 17.92-38.4-20.48-10.24-38.4-17.92-61.44-30.72-12.8 71.68-56.32 94.72-122.88 71.68-5.12 58.88 40.96 35.84 71.68 48.64-40.96 51.2-76.8 97.28-117.76 148.48 38.4 7.68 61.44-20.48 97.28-38.4-15.36 79.36-28.16 151.04-43.52 222.72 30.72 7.68 56.32-5.12 69.12-35.84 7.68-20.48 10.24-40.96 17.92-58.88 23.04-71.68 99.84-122.88 179.2-104.96-2.56 10.24-2.56 17.92-5.12 28.16-20.48 0-40.96 0-58.88 2.56-33.28 5.12-61.44 20.48-69.12 56.32-7.68 33.28 2.56 61.44 30.72 81.92 40.96 28.16 89.6 38.4 143.36 38.4 5.12-28.16 7.68-56.32 12.8-87.04 12.8 7.68 20.48 12.8 30.72 15.36 74.24 40.96 151.04 76.8 238.08 87.04 84.48 10.24 158.72-15.36 217.6-76.8 5.12-5.12 10.24-15.36 12.8-23.04-143.36 76.8-273.92 53.76-401.92-17.92z m-161.28-168.96c-53.76 20.48-107.52 40.96-158.72 58.88-5.12-35.84 0-53.76 38.4-61.44 28.16-7.68 58.88-7.68 87.04-7.68h12.8c30.72 0 20.48 10.24 20.48 10.24z m-7.68 148.48c-5.12 25.6-7.68 51.2-12.8 76.8h-5.12-2.56-2.56-2.56c-2.56 0-2.56 0-5.12-2.56-2.56 0-5.12-2.56-5.12-2.56s-2.56 0-2.56-2.56c0 0-2.56 0-2.56-2.56 0 0-2.56 0-2.56-2.56h-2.56l-2.56-2.56c-2.56 0-2.56-2.56-2.56-2.56-2.56-2.56-5.12-5.12-5.12-7.68l-2.56-2.56s0-2.56-2.56-2.56c-2.56-5.12-2.56-12.8-2.56-17.92v-2.56c2.56-28.16 25.6-35.84 64-25.6z" fill="#FFFFFF"></path><path d="M924.16 340.48c-28.16 2.56-53.76 2.56-87.04 5.12 12.8-17.92 20.48-28.16 28.16-40.96-20.48-10.24-38.4-17.92-56.32-25.6-30.72 20.48-33.28 64-74.24 71.68-5.12-23.04-7.68-46.08-10.24-66.56-53.76 7.68-56.32 12.8-46.08 69.12h-81.92c0 33.28 7.68 40.96 43.52 40.96h74.24c0 2.56 2.56 7.68 2.56 10.24-15.36 5.12-33.28 10.24-48.64 17.92-15.36 7.68-40.96 17.92-43.52 30.72-12.8 56.32-17.92 115.2-25.6 176.64 76.8 48.64 161.28 40.96 250.88 28.16 5.12-33.28 7.68-61.44 12.8-89.6 2.56-28.16 10.24-56.32 10.24-84.48 2.56-40.96-12.8-58.88-51.2-66.56-15.36-2.56-33.28-5.12-48.64-7.68 0-2.56-2.56-5.12-2.56-7.68 15.36-5.12 30.72-10.24 48.64-12.8 28.16-5.12 56.32-5.12 81.92-10.24 12.8-7.68 30.72-12.8 23.04-38.4zM788.48 614.4c-43.52 17.92-84.48 12.8-125.44 0 0-2.56 2.56-5.12 5.12-7.68 2.56-2.56 2.56-5.12 5.12-7.68l2.56-2.56 2.56-2.56 2.56-2.56c2.56-2.56 5.12-2.56 7.68-5.12 0 0 2.56 0 2.56-2.56 5.12-2.56 7.68-2.56 12.8-5.12h53.76c10.24 0 20.48 2.56 33.28 5.12-2.56 0 30.72 7.68-2.56 30.72z m-5.12-79.36s-2.56 0 0 0h-2.56-2.56-2.56c-5.12 0-7.68 2.56-12.8 2.56-7.68 2.56-17.92 2.56-25.6 5.12l-53.76 7.68c-5.12 0-7.68 2.56-12.8 2.56v-5.12-2.56-2.56-2.56c0-2.56 0-5.12 2.56-7.68 5.12-10.24 12.8-15.36 25.6-20.48 2.56 0 2.56 0 5.12-2.56h17.92c25.6-2.56 51.2 0 76.8 0 38.4 0-2.56 20.48-15.36 25.6z m17.92-74.24c-40.96 7.68-81.92 15.36-120.32 23.04-5.12-23.04 5.12-35.84 30.72-40.96 46.08-12.8 74.24-7.68 89.6 17.92zM517.12 427.52l7.68-61.44c46.08 10.24 74.24 58.88 61.44 107.52-12.8-7.68-23.04-15.36-33.28-23.04-10.24-7.68-23.04-12.8-35.84-23.04zM320 660.48c2.56 2.56 2.56 5.12 5.12 7.68 0-2.56-2.56-5.12-5.12-7.68zM371.2 688.64c-20.48-5.12-35.84-10.24-46.08-20.48 10.24 10.24 25.6 17.92 46.08 20.48z" fill="#FFFFFF"></path><path d="M673.28 596.48c-2.56 2.56-5.12 5.12-5.12 7.68 0-2.56 2.56-5.12 5.12-7.68zM783.36 535.04zM683.52 552.96c-5.12 0-7.68 2.56-12.8 2.56 5.12-2.56 7.68-2.56 12.8-2.56zM778.24 535.04c0 2.56 0 2.56 0 0-5.12 2.56-10.24 2.56-15.36 5.12 5.12-2.56 10.24-2.56 15.36-5.12 0 2.56 0 2.56 0 0zM780.8 535.04s-2.56 0 0 0c-2.56 0 0 0 0 0zM780.8 535.04zM796.16 506.88c-25.6 0-51.2-2.56-76.8 0h-7.68 7.68c25.6-2.56 53.76 0 76.8 0zM780.8 535.04zM780.8 535.04zM783.36 535.04z" fill="#FFFFFF"></path>
+    </symbol>
+
+    <symbol id="icon-sousuo" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+    </symbol>
+</svg>
+
+<div class="top-bar">
+    <div class="logo">LOGO</div>
+    <div class="datetime-motto">
+        <div class="date-weekday"><span id="date-display-top"></span> <span id="weekday-display-top"></span></div>
+        <div id="time-display-top"></div>
+    </div>
+</div>
+
+<div class="page-wrapper">
+    <div id="search" class="s-search">
+        <div class="header-nav">
+            <div id="search-list" class="search-engine-buttons-row">
+                <div class="search-group group-a s-current">
+                    <ul class="search-type">
+                        <li>
+                            <input type="radio" name="search-engine-type" id="type-baidu" value="baidu" data-placeholder="百度一下，你就知道" checked>
+                            <label for="type-baidu">
+                                <svg class="icon" aria-hidden="true"><use xlink:href="#icon-icon_baidulogo"></use></svg>
+                                <span>百度一下</span>
+                            </label>
+                        </li>
+                        <li>
+                            <input type="radio" name="search-engine-type" id="type-bing" value="bing" data-placeholder="Bing 必应搜索">
+                            <label for="type-bing">
+                                <svg class="icon" aria-hidden="true"><use xlink:href="#icon-bing"></use></svg>
+                                <span>Bing必应</span>
+                            </label>
+                        </li>
+                        <li>
+                            <input type="radio" name="search-engine-type" id="type-google" value="google" data-placeholder="谷歌搜索">
+                            <label for="type-google">
+                                <svg class="icon" aria-hidden="true"><use xlink:href="#icon-google00"></use></svg>
+                                <span>谷歌搜索</span>
+                            </label>
+                        </li>
+                        <li>
+                            <input type="radio" name="search-engine-type" id="type-youdao" value="youdao" data-placeholder="输入单词或句子查询">
+                            <label for="type-youdao">
+                                <svg class="icon" aria-hidden="true"><use xlink:href="#icon-youdao00"></use></svg>
+                                <span>有道词典</span>
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <form id="super-search-fm" class="search-input-row" method="get">
+                <input type="text" id="search-text" placeholder="百度一下，你就知道" autocomplete="off">
+                <button class="submit" type="submit">
+                    <svg class="icon" aria-hidden="true"><use xlink:href="#icon-sousuo"></use></svg>
+                    <span></span>
+                </button>
+            </form>
+        </div>
+
+        <div class="set-check hidden-xs">
+            <input type="checkbox" id="set-search-blank" autocomplete="off" checked>
+            <label for="set-search-blank">在新标签页中打开</label>
+        </div>
+    </div>
+
+    <div id="bookmarks-section" class="bookmarks-container">
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateDisplayTop = document.getElementById('date-display-top');
+        const timeDisplayTop = document.getElementById('time-display-top');
+        const weekdayDisplayTop = document.getElementById('weekday-display-top');
+
+        const searchForm = document.getElementById('super-search-fm');
+        const searchInput = document.getElementById('search-text');
+        const engineRadioButtons = document.querySelectorAll('input[name="search-engine-type"]');
+        const openInNewTabCheckbox = document.getElementById('set-search-blank');
+        // const pageBlurOverlay = document.getElementById('page-blur-overlay'); // No longer toggled by JS
+
+        const bookmarksContainer = document.getElementById('bookmarks-section');
+
+        const searchServices = {
+            'baidu': { urlFormat: 'https://www.baidu.com/s?wd=%s', placeholder: '百度一下，你就知道' },
+            'bing': { urlFormat: 'https://www.bing.com/search?q=%s', placeholder: 'Bing 必应搜索' },
+            'google': { urlFormat: 'https://www.google.com/search?q=%s', placeholder: '谷歌搜索' },
+            'youdao': { urlFormat: 'https://dict.youdao.com/search?q=%s',  placeholder: '输入单词或句子查询' }
+        };
+        let currentServiceKey = 'baidu';
+
+        const bookmarkCategoriesData = [
+            { name: "常用导航", sites: [
+                    { name: "Google", url: "https://www.google.com" },{ name: "百度", url: "https://www.baidu.com" },{ name: "GitHub", url: "https://www.github.com" },{ name: "V2EX", url: "https://www.v2ex.com/" },{ name: "知乎", url: "https://www.zhihu.com/" },{ name: "淘宝", url: "https://www.taobao.com" },{ name: "京东", url: "https://www.jd.com" }
+                ]},
+            { name: "集团系统", sites: [
+                    { name: "MDN", url: "https://developer.mozilla.org/" },{ name: "Stack Overflow", url: "https://stackoverflow.com/" },{ name: "掘金", url: "https://juejin.cn/" },{ name: "CSDN", url: "https://www.csdn.net/" },{ name: "LeetCode", url: "https://leetcode.cn/" },{ name: "AWS", url: "https://aws.amazon.com/" },{ name: "阿里云", url: "https://www.aliyun.com/" }
+                ]}
+        ];
+
+        function updateTopDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            if (dateDisplayTop) dateDisplayTop.textContent = `${year}年${month}月${day}日`;
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            if (timeDisplayTop) timeDisplayTop.textContent = `${hours}:${minutes}:${seconds}`;
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            if (weekdayDisplayTop) weekdayDisplayTop.textContent = weekdays[now.getDay()];
+        }
+
+        if (dateDisplayTop && timeDisplayTop && weekdayDisplayTop) {
+            updateTopDateTime();
+            setInterval(updateTopDateTime, 1000);
+        }
+
+        function updateFormVisuals(serviceKey) {
+            const service = searchServices[serviceKey];
+            if (service) {
+                searchInput.placeholder = service.placeholder;
+                currentServiceKey = serviceKey;
+            }
+        }
+
+        function updateFormTargetSetting() {
+            localStorage.setItem('openInNewTab', openInNewTabCheckbox.checked);
+        }
+
+        if (localStorage.getItem('openInNewTab') !== null) {
+            openInNewTabCheckbox.checked = localStorage.getItem('openInNewTab') === 'true';
+        }
+        openInNewTabCheckbox.addEventListener('change', updateFormTargetSetting);
+
+        let lastSelectedService = localStorage.getItem('selectedSearchService');
+        if (!searchServices[lastSelectedService]) {
+            lastSelectedService = 'baidu';
+            localStorage.setItem('selectedSearchService', lastSelectedService);
+        }
+        currentServiceKey = lastSelectedService;
+
+        const radioToSelect = document.getElementById('type-' + currentServiceKey);
+        if (radioToSelect) { radioToSelect.checked = true; }
+        else {
+            document.getElementById('type-baidu').checked = true;
+            currentServiceKey = 'baidu';
+            localStorage.setItem('selectedSearchService', currentServiceKey);
+        }
+        updateFormVisuals(currentServiceKey);
+
+        engineRadioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    updateFormVisuals(this.value);
+                    localStorage.setItem('selectedSearchService', this.value);
+                }
+            });
+        });
+
+        searchForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const query = searchInput.value.trim();
+            if (!query) { searchInput.focus(); return; }
+            let targetUrl = '';
+            let isDirectNavigation = false;
+            if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(query)) {
+                targetUrl = query; isDirectNavigation = true;
+            } else if (!query.includes(' ') && query.includes('.') && !query.startsWith('.') && !query.endsWith('.')) {
+                const hostPart = query.split('/')[0];
+                if (hostPart.toLowerCase().startsWith('localhost')) {
+                    targetUrl = 'http://' + query; isDirectNavigation = true;
+                } else if (/^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/.test(hostPart)) {
+                    targetUrl = 'http://' + query; isDirectNavigation = true;
+                } else {
+                    const domainNameOnly = hostPart.split(':')[0];
+                    const lastDotIndex = domainNameOnly.lastIndexOf('.');
+                    if (lastDotIndex > 0 && lastDotIndex < domainNameOnly.length - 1) {
+                        const tld = domainNameOnly.substring(lastDotIndex + 1);
+                        if (/^[a-zA-Z]{2,}$/.test(tld)) {
+                            targetUrl = 'http://' + query; isDirectNavigation = true;
+                        }
+                    }
+                }
+            }
+            if (!isDirectNavigation) {
+                const service = searchServices[currentServiceKey];
+                if (service && service.urlFormat) {
+                    targetUrl = service.urlFormat.replace('%s', encodeURIComponent(query));
+                } else {
+                    console.error("当前服务配置错误 (回退到百度):", currentServiceKey);
+                    targetUrl = searchServices['baidu'].urlFormat.replace('%s', encodeURIComponent(query));
+                }
+            }
+            if (targetUrl) {
+                if (openInNewTabCheckbox.checked) { window.open(targetUrl, '_blank'); }
+                else { window.location.href = targetUrl; }
+            }
+        });
+
+        function renderBookmarks(categories) {
+            if (!bookmarksContainer || !categories || categories.length === 0) {
+                if(bookmarksContainer) bookmarksContainer.innerHTML = '<p style="text-align:center; color:#aaa; padding: 20px 0;">暂无书签数据。请在脚本中编辑 bookmarkCategoriesData 添加书签。</p>';
+                return;
+            }
+            bookmarksContainer.innerHTML = '';
+            categories.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'bookmark-category';
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category.name;
+                categoryDiv.appendChild(categoryTitle);
+                if (category.sites && category.sites.length > 0) {
+                    const siteList = document.createElement('ul');
+                    siteList.className = 'bookmark-list';
+                    category.sites.forEach(site => {
+                        const listItem = document.createElement('li');
+                        const link = document.createElement('a');
+                        link.href = site.url;
+                        link.target = '_blank';
+                        link.title = site.name + " - " + site.url;
+                        try {
+                            const faviconUrl = `https://www.google.com/s2/favicons?sz=32&domain_url=${encodeURIComponent(site.url)}`;
+                            const faviconImg = document.createElement('img');
+                            faviconImg.src = faviconUrl;
+                            faviconImg.alt = "";
+                            faviconImg.className = 'bookmark-favicon';
+                            faviconImg.onerror = function() { this.style.display = 'none'; };
+                            link.appendChild(faviconImg);
+                        } catch (e) { console.warn("无法为书签创建图标URL:", site.url, e); }
+                        const siteNameSpan = document.createElement('span');
+                        siteNameSpan.textContent = site.name;
+                        link.appendChild(siteNameSpan);
+                        listItem.appendChild(link);
+                        siteList.appendChild(listItem);
+                    });
+                    categoryDiv.appendChild(siteList);
+                } else {
+                    const noSitesMessage = document.createElement('p');
+                    noSitesMessage.textContent = '此分类下暂无书签。';
+                    noSitesMessage.style.fontSize = '0.9em';
+                    noSitesMessage.style.color = '#888';
+                    noSitesMessage.style.textAlign = 'center';
+                    noSitesMessage.style.padding = '10px 0';
+                    categoryDiv.appendChild(noSitesMessage);
+                }
+                bookmarksContainer.appendChild(categoryDiv);
+            });
+        }
+
+        searchInput.focus();
+        renderBookmarks(bookmarkCategoriesData);
+    });
+</script>
+</body>
+</html>
