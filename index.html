@@ -133,25 +133,23 @@
             flex: 0 1 auto; 
         }
         ul.search-type li input[type="radio"] { display: none; }
-        
-        ul.search-type li label { /* 引擎按钮样式 - 未选中 */
+        ul.search-type li label { 
             display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
-            padding: 8px 14px; /* 调整内边距以匹配新风格 */
-            border: 1px solid #d0d7de; /* 类似GitHub的边框颜色 */
+            padding: 8px 18px; 
+            border: 1px solid #d0d7de; 
             border-radius: 6px; 
             cursor: pointer;
-            font-weight: 500; /* 之前是 normal，GitHub按钮通常是500或600 */
-            font-size: 0.875em; /* 14px if base is 16px, common for buttons */
-            color: #24292e; /* 深灰色文字，类似GitHub */
+            font-weight: 500; 
+            font-size: 0.875em; 
+            color: #24292e; 
             transition: background-color 0.1s, border-color 0.1s, color 0.1s, box-shadow 0.1s;
-            background-color: #f0f2f5; /* 浅灰色背景，不透明 */
+            background-color: #f0f2f5; 
             backdrop-filter: none;              
             -webkit-backdrop-filter: none;     
-            max-width: 170px; 
-            box-shadow: 0 1px 0 rgba(27,31,36,0.04), inset 0 1px 0 hsla(0,0%,100%,0.25); /* GitHub 按钮阴影 */
+            box-shadow: 0 1px 0 rgba(27,31,36,0.04), inset 0 1px 0 hsla(0,0%,100%,0.25); 
         }
         ul.search-type li label .icon {
             width: 16px; 
@@ -164,50 +162,47 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 20px; /* 确保文字垂直居中 */
+            line-height: 20px; 
         }
-        ul.search-type li input[type="radio"]:checked + label { /* 引擎按钮样式 - 选中 */
-            background-color: #ddf4ff; /* 浅蓝色背景 */
+        ul.search-type li input[type="radio"]:checked + label { 
+            background-color: #ddf4ff; 
             border-color: #58a6ff;    
-            color: #0969da; /* 深蓝色文字 */
+            color: #0969da; 
             backdrop-filter: none;                 
             -webkit-backdrop-filter: none;
-            box-shadow: none; /* 选中时通常无额外阴影或内阴影 */
+            box-shadow: none; 
         }
         ul.search-type li label:hover:not(:checked) { 
-             background-color: #e9ecef; /* 悬停时稍暗的浅灰色 */
+             background-color: #e9ecef; 
              border-color: #ced4da;
              color: #161a1e; 
         }
 
-        .search-input-row { /* form 元素 */
+        .search-input-row { 
             display: flex; 
             width: 100%; 
-            background-color: #f6f8fa; /* 搜索框浅灰色背景 */
+            background-color: #f6f8fa; 
             border-radius: 6px; 
-            border: 1px solid #d0d7de; /* 搜索框边框 */
-            box-shadow: 0 1px 2px rgba(27,31,36,0.04); /* 轻微阴影 */
+            border: 1px solid #d0d7de; 
+            box-shadow: 0 1px 2px rgba(27,31,36,0.04); 
             overflow: hidden; 
-            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .search-input-row:focus-within { 
-            border-color: #0969da; /* GitHub 蓝色焦点 */
-            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
-        }
+        /* 移除 .search-input-row:focus-within 以去除整体聚焦效果 */
+        
 
         #search-text {
             flex-grow: 1;
-            padding: 10px 12px; /* 调整内边距 */
-            font-size: 0.9em; /* 调整字体大小 */
+            padding: 10px 12px; 
+            font-size: 0.9em; 
             border: none; 
             border-radius: 0; 
             outline: 0;
             -webkit-appearance: none;
             background-color: transparent; 
-            color: #24292e; /* 深色输入文字 */
+            color: #24292e; 
             position: relative; 
         }
-        #search-text::placeholder { color: #57606a; opacity: 1; } /* GitHub 占位符颜色 */
+        #search-text::placeholder { color: #57606a; opacity: 1; } 
         
         #super-search-fm .submit {
             padding: 0; 
@@ -221,12 +216,12 @@
             justify-content: center;
             transition: background-color 0.2s;
             width: auto;
-            min-width: 50px; /* 调整搜索按钮宽度 */
-            padding: 0 12px; /* 搜索按钮内边距 */
+            min-width: 50px; 
+            padding: 0 12px; 
         }
         #super-search-fm .submit:hover { background-color: #0b5ed7; } 
         #super-search-fm .submit .icon {
-            width: 18px; /* 调整图标大小 */
+            width: 18px; 
             height: 18px;
             margin: 0; 
             fill: currentColor; 
@@ -328,27 +323,36 @@
             #time-display-top { font-size: 1.5em; min-width: 115px; } 
             
             ul.search-type { 
-                display: grid;
-                grid-template-columns: 1fr 1fr; 
-                gap: 8px; 
-                justify-items: stretch; 
+                display: flex; /* *** CHANGED: 使用 Flexbox *** */
+                flex-wrap: wrap;
+                justify-content: space-between; /* *** CHANGED: 两端对齐以拉伸按钮组 *** */
+                gap: 8px; /* 按钮之间的间隙 */
                 width: 100%; 
                 padding:0;
             }
             ul.search-type li {
-                width: 100%; 
+                flex-grow: 1; /* 允许按钮增长以填充空间 */
+                flex-shrink: 1; /* 允许按钮在必要时缩小 */
+                flex-basis: calc(50% - 4px); /* gap为8px, (8px/2)=4px. 使每行两个 */
+                max-width: calc(50% - 4px);  /* 强制每行最多两个 */
             }
             ul.search-type li label { 
                 display: flex;
                 width: 100%; 
                 max-width: none; 
-                font-size: 0.875em; /* 调整以适应手机端 */
-                padding: 8px 10px; /* 调整手机端按钮padding */
+                font-size: 0.9em; 
+                padding: 10px 10px; 
+                /* 移除 backdrop-filter 以使用不透明背景 */
+                backdrop-filter: none;              
+                -webkit-backdrop-filter: none;
             }
-            ul.search-type li label .icon { margin-right: 4px; width: 14px; height: 14px;} /* 图标可以小一点 */
+             ul.search-type li input[type="radio"]:checked + label {
+                 backdrop-filter: none;                 
+                -webkit-backdrop-filter: none;
+            }
+            ul.search-type li label .icon { margin-right: 4px; width: 16px; height: 16px;}
             
-            #search-text, #super-search-fm .submit { font-size: 0.95em; }
-            #search-text { padding: 10px 14px; }
+            #search-text, #super-search-fm .submit { font-size: 0.95em; padding-top: 10px; padding-bottom: 10px;}
             #super-search-fm .submit .icon { width:18px; height:18px; margin: 0 10px;}
 
             .bookmark-category { padding: 0; margin-bottom: 20px;}
@@ -383,14 +387,13 @@
                 text-align:center; 
             } 
             ul.search-type li label { 
-                font-size: 0.85em; 
-                padding-top: 10px;    
-                padding-bottom: 10px;
-                padding-left: 8px;
-                padding-right: 8px;
+                font-size: 0.9em; 
+                padding-top: 12px;    
+                padding-bottom: 12px;
+                padding-left: 10px;
+                padding-right: 10px;
             }
             #search-text, #super-search-fm .submit { font-size: 0.9em; }
-            #search-text { padding: 10px 12px; }
             
             .bookmark-category { padding: 0; }
             .category-title { font-size: 1.05em; margin-bottom: 10px; padding-bottom: 6px;}
@@ -403,13 +406,17 @@
             ul.search-type {
                 gap: 6px; 
             }
+             ul.search-type li { 
+                flex-basis: calc(50% - 3px); /* gap是6px */
+                max-width: calc(50% - 3px);
+            }
             ul.search-type li label {
-                font-size: 0.8em;
+                font-size: 0.85em;
                 padding: 8px 5px; 
             }
             ul.search-type li label .icon {
-                width: 12px; /* 进一步缩小图标 */
-                height: 12px;
+                width: 14px;
+                height: 14px;
                 margin-right: 3px;
             }
             .bookmark-list { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 10px; }
